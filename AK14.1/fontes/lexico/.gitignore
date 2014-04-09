@@ -5,3 +5,7 @@
 /SimpleCharStream.java
 /Token.java
 /TokenMgrError.java
+/Kina.java
+/KinaConstants.java
+/KinaTokenManager.java
+/AK14_1Constants.java

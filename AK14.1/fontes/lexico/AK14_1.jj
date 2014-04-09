@@ -1,0 +1,348 @@
+/*************************************************************************
+Arquivo a ser processado pelo programa JavaCC.
+Contém:
+       - descriçăo do analisador léxico para a linguagem AK14.1
+
+Essa primeira versăo do compilador somente lę a entrada, identifica os tokens
+e mostra-os na saída-padrăo.
+************************************************************************/
+
+
+/*@STATIC = true (padrão), classes do parser/lexer terão componentes (variáveis e métodos) static.
+  Só um parser/lexer poderá ser criado.
+  @STATIC = false tem-se maior flexibilidade com diversas cópias podendo ser criadas.
+*/
+
+/* @DEBUG_LOOKAHEAD=true. gera todas as informações de rastreamento e
+   um rastro de ações realizadas durante a operação de antecipação.
+*/
+
+//1ª PARTE
+
+options {
+  STATIC = false;
+  DEBUG_LOOKAHEAD = true; // incluido
+}
+
+
+//2ª PARTE
+
+PARSER_BEGIN(AK14_1)
+package lexico;
+
+import java.io.*;
+
+
+public class AK14_1 {
+final static String versao = "AK14.1 Compiler - versao 1.0 - 2014";
+boolean flagSaida = false; // saída resumida = falso
+
+
+// Define o método "main" da classe AK14_1.  
+  public  static void main(String args[]) throws ParseException 
+  {
+    String nomeDoAnalisado = ""; // nome do arquivo a ser analisado
+    AK14_1 lexer;     // analisador léxico
+    int i;
+    boolean parametroCmd = false;
+
+    System.out.println(versao);
+    
+    // lę os parâmetros passados para o compilador
+    for (i = 0; i < args.length - 1; i++)
+    {
+    if ( args[i].toLowerCase().equals("-short") )
+      parametroCmd = true;
+    else
+        {
+           System.out.println("Utilizacao: java AK14.1 [-short] arquivoEntrada");
+           System.exit(0);
+        }
+    }
+
+    if (args[i].equals("-"))
+    {       // lę da entrada padrăo      
+        System.out.println("Lendo da entrada padrăo . . .");
+        lexer = new AK14_1(System.in);
+     }
+     else 
+    {       // lę do arquivo
+        nomeDoAnalisado = args[args.length-1];  
+        System.out.println("Lendo do arquivo " + nomeDoAnalisado + " . . .");
+        try {
+            lexer = new AK14_1(new java.io.FileInputStream(nomeDoAnalisado));
+        } 
+    catch (java.io.FileNotFoundException e) {
+               System.out.println("Arquivo " + nomeDoAnalisado + " nao encontrado!!");
+        return;
+        }
+    } 
+    lexer.flagSaida = parametroCmd;
+    lexer.program();   // chama o método que faz a análise
+    if ( lexer.token_source.contadorErrosLexicos() != 0 ) // verifica se houve erro léxico
+        System.out.println(lexer.token_source.contadorErrosLexicos() + " Erros LEXICOS encontrados!");
+    else
+        System.out.println("Codigo analisado com sucesso!");
+}  // main
+
+static public String imagem(int x)
+{
+int k;
+String s;
+   s = tokenImage[x];
+   k = s.lastIndexOf("\"");
+   try {s = s.substring(1,k);}
+   catch (StringIndexOutOfBoundsException e)
+   {}
+   return s;
+}
+
+}  // AK14_1
+
+PARSER_END(AK14_1)
+
+TOKEN_MGR_DECLS :
+{
+int contaErrosLexicos = 0;
+
+public int contadorErrosLexicos()
+{
+   return contaErrosLexicos;
+}
+
+}
+
+
+/* Espaços a serem desprezados no início de cada token */
+/* É preciso rever se a produção WhiteSpace e Terminator faz sentido. */
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+| "\f"
+}
+
+SKIP :
+{
+  "(*" : comentario
+}
+
+SKIP :
+{
+  "((" : comentarioLinha
+}
+
+
+/*A deinição ~[] é utilizada para fazer o casamento com qualquer caractere que não esteja
+entre os colchetes. Por exemplo, ~[0-9] irá casar com qualquer caractere da entrada
+que não seja um dígito e (~["0"-"9"])* irá casar com qualquer cadeia que não possua dígitos.
+*/
+<comentario> SKIP:
+{
+   "*)" : DEFAULT
+|  <~[]>
+}
+
+<comentarioLinha> SKIP:
+{
+   <["\n","\r"]> : DEFAULT
+|   <~[]>
+}
+
+
+/* Palavras reservadas */
+
+TOKEN :
+{
+  < BOOLEAN: "boolean" > // incluido
+| < BREAK: "break" >
+| < CASE: "case" >
+| < CATCH: "catch" > // incluido
+| < CHAR: "char" > // incluido
+| < CLASS: "class" >
+| < CLOSE: "close" >
+| < CONSTRUCTOR: "constructor" >
+| < STANDARD: "default" > // incluido
+| < ELSE: "else" >
+| < EXTENDS: "extends" >
+| < FOR: "for" >
+| < GENERIC: "generic" > // incluido
+| < IF: "if" >
+| < IMPLEMENTS: "implements" > // incluido
+| < IMPORT: "import" > // incluido
+| < INTERFACE: "interface" > // incluido
+| < IN: "in" > // incluido
+| < INT: "int" >
+| < NEW: "new" >
+| < OBJECT: "object" > // incluido
+| < OPEN: "open" >
+| < PRINT: "print" >
+| < PRIVATE: "private" > //incluido
+| < PUBLIC: "public" > //incluido
+| < READ: "read" >
+| < RETURN: "return" >
+| < STRING: "string" >
+| < SUPER: "super" >
+| < SWITCH: "switch" > // incluido
+| < THROW: "throw" > // incluido
+| < TRY: "try" > // incluido
+| < VOID: "void" > // incluido - Nós não temos metodos sem retorno?
+| < WHILE: "while" > // incluido
+}
+
+/* constantes */
+/*Preciso de ajuda com as expressões regulares que definem Character
+Letter = "a" | "b" | "c" | "d" | "e" | "f" | "g"| "h" | "i" | "j" | "k" | "l" | "m" | "n"| "o" | "p" | "q" | "r" | "s" | "t" | "u"| "v" | "w" | "x" | "y" | "z" .
+Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" .
+Symbol = "["  |  "]"  |  "{"  |  "}"  |  "("  |  ")"  |  "<"  |  ">"  |  "'"  |  "="  |  "|"  |  "."  |  ","  |  ";" | "_" | "\" | "!" | "@" | "#" | "$" | "%"  | "/" | "o"  | "a"  | "^"  | "~".
+Character = (Letter | Digit | Symbol) {Letter | Digit | Symbol}.
+*/
+TOKEN :
+{
+  < BOOLEAN_CONST: ("true"|"false") > //incluido
+|
+  < NUMBER_CONST:(  // números decimais, octais, hexadecimais ou binários - verificar se isso esta ok?
+                  (["-", "0"-"9"] (["0"-"9"])* ) | 
+                  (["0"-"7"] (["0"-"7"])* ["o", "O"] ) |
+                  (["0"-"9"] (["0"-"7","A"-"F","a"-"f"])* ["h", "H"] ) |
+                  (["0"-"1"] (["0"-"1"])* ["b", "B"])
+                 ) >
+|
+  < NULL_CONST: "null" > // constante nula
+|
+  < STRING_CONST:    //constante string como "abcd bcda" - http://cse.spsu.edu/clo/teaching/cs4713/lecture/node12.html como incluir simbolos e números? 
+      "\""( ~["\n","\r"])* "\"" >
+}
+
+/* Identificadores */
+/* Underscore está certo?.*/
+TOKEN :
+{
+  < IDENT: <UNDERSCORE><LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < #LETTER:["A"-"Z","a"-"z"] >
+|
+  < #DIGIT:["0"-"9"] >
+|
+  < #UNDERSCORE:["_"]>
+}
+
+/* Símbolos especiais */
+
+TOKEN :
+{
+  < BUT: "?" > // incluido
+| < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < DOT: "." >
+| < SO: ":" > // incluido
+}
+
+/* Operadores */
+
+TOKEN :
+{
+  < ASSIGN: "=" >
+| < DE: "/=" > // incluido
+| < DEC: "--" > // incluido
+| < EQ: "==" > 
+| < GE: ">=" >
+| < GT: ">" >
+| < INC: "++" > // incluido
+| < LT: "<" >
+| < LE: "<=" >
+| < PE: "+=" > // incluido
+| < ME: "-=" > // incluido
+| < MINUS: "-" > //  como resolver isso?
+| < NEQ: "!=" >
+| < PLUS: "+" >
+| < REM: "%" >
+| < SL: "<<" > // incluido
+| < SLASH: "/" >
+| < STAR: "*" >
+| < SR: ">>" > // incluido
+| < XE: "*=" > // incluido
+}
+
+/* Trata os erros léxicos */
+/*Verificar o que deve realmente ser entendido como erro lexico.*/
+SPECIAL_TOKEN :
+{
+<INVALID_LEXICAL: 
+(~ ["a"-"z", "A"-"Z",
+  "0"-"9",
+  "\"",
+  "(",
+  ")",
+  "[",
+  "]",
+  "{",
+  "}",
+  ";",
+  ",",
+  ".",
+  "=",
+  ">",
+  "<",
+  "!",
+  "+",
+  "-",
+  "*",
+  "/",
+  "%",
+  " ",
+  "\t",
+  "\n",
+  "\r",
+  "\f"
+])+>
+   {
+    System.err.println("Linha " + input_stream.getEndLine() + 
+                           " - string invalido encontrado: " + image);
+    contaErrosLexicos++;
+   }
+|
+   <INVALID_CONST: 
+   "\"" (~ ["\n","\r","\""])* ["\n","\r"]>
+   {
+    System.err.println("Line " + input_stream.getEndLine() + 
+                           " - a constante string tęm \\n: " + image);
+    contaErrosLexicos++;
+   }
+
+}
+
+
+
+JAVACODE void program()
+{
+Token t;
+    do
+    {
+    t = getNextToken();
+    Token proximoToken = t;
+        while ( proximoToken.specialToken != null)
+        proximoToken = proximoToken.specialToken;
+        do {
+           if ( flagSaida )
+          System.out.println(proximoToken.image + "  " + 
+                                 imagem(proximoToken.kind) + " " +
+                                 proximoToken.kind);
+           else
+              System.out.println("Linha: " + proximoToken.beginLine + 
+                                 " Coluna: " + proximoToken.beginColumn + 
+                                 " " + proximoToken.image +
+                                 "  " + imagem(proximoToken.kind) + "  "+t.kind);
+          proximoToken = proximoToken.next;       
+        } while (proximoToken != t.next);
+    } while (t.kind != AK14_1Constants.EOF);  
+}
