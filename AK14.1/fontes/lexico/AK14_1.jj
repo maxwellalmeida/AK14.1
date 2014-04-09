@@ -114,7 +114,6 @@ public int contadorErrosLexicos()
 
 
 /* Espaços a serem desprezados no início de cada token */
-/* É preciso rever se a produção WhiteSpace e Terminator faz sentido. */
 
 SKIP :
 {
@@ -163,7 +162,7 @@ TOKEN :
 | < CATCH: "catch" > // incluido
 | < CHAR: "char" > // incluido
 | < CLASS: "class" >
-| < CLOSE: "close" >
+| < CLOSE: "close" > //incluido
 | < CONSTRUCTOR: "constructor" >
 | < STANDARD: "default" > // incluido
 | < ELSE: "else" >
@@ -177,8 +176,7 @@ TOKEN :
 | < IN: "in" > // incluido
 | < INT: "int" >
 | < NEW: "new" >
-| < OBJECT: "object" > // incluido
-| < OPEN: "open" >
+| < OPEN: "open" > //incluido
 | < PRINT: "print" >
 | < PRIVATE: "private" > //incluido
 | < PUBLIC: "public" > //incluido
@@ -189,39 +187,40 @@ TOKEN :
 | < SWITCH: "switch" > // incluido
 | < THROW: "throw" > // incluido
 | < TRY: "try" > // incluido
-| < VOID: "void" > // incluido - Nós não temos metodos sem retorno?
+| < VOID: "void" > // incluido
 | < WHILE: "while" > // incluido
 }
 
 /* constantes */
-/*Preciso de ajuda com as expressões regulares que definem Character
-Letter = "a" | "b" | "c" | "d" | "e" | "f" | "g"| "h" | "i" | "j" | "k" | "l" | "m" | "n"| "o" | "p" | "q" | "r" | "s" | "t" | "u"| "v" | "w" | "x" | "y" | "z" .
-Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" .
-Symbol = "["  |  "]"  |  "{"  |  "}"  |  "("  |  ")"  |  "<"  |  ">"  |  "'"  |  "="  |  "|"  |  "."  |  ","  |  ";" | "_" | "\" | "!" | "@" | "#" | "$" | "%"  | "/" | "o"  | "a"  | "^"  | "~".
-Character = (Letter | Digit | Symbol) {Letter | Digit | Symbol}.
-*/
+
 TOKEN :
 {
   < BOOLEAN_CONST: ("true"|"false") > //incluido
 |
   < NUMBER_CONST:(  // números decimais, octais, hexadecimais ou binários - verificar se isso esta ok?
-                  (["-", "0"-"9"] (["0"-"9"])* ) | 
-                  (["0"-"7"] (["0"-"7"])* ["o", "O"] ) |
-                  (["0"-"9"] (["0"-"7","A"-"F","a"-"f"])* ["h", "H"] ) |
-                  (["0"-"1"] (["0"-"1"])* ["b", "B"])
+                  (("-")? ["0"-"9"] (["0"-"9"])* )  
                  ) >
 |
   < NULL_CONST: "null" > // constante nula
 |
   < STRING_CONST:    //constante string como "abcd bcda" - http://cse.spsu.edu/clo/teaching/cs4713/lecture/node12.html como incluir simbolos e números? 
-      "\""( ~["\n","\r"])* "\"" >
+      "\""( ~["\n","\"","\r"])* "\"" >
+/*
+
+FICOU FALTANDO DECIDIR ISSO!!!
+Character = (Letter | Digit | Symbol) {Letter | Digit | Symbol}.
+
+*/
+
+|
+  < CHARACTER_CONST: ["0"-"9"]|["a"-"z"]|["A"-"Z"] >
 }
 
 /* Identificadores */
 /* Underscore está certo?.*/
 TOKEN :
 {
-  < IDENT: <UNDERSCORE><LETTER> (<LETTER>|<DIGIT>)* >
+  < IDENT: (<UNDERSCORE>)* <LETTER> (<LETTER>|<DIGIT>)* >
 |
   < #LETTER:["A"-"Z","a"-"z"] >
 |
@@ -234,7 +233,7 @@ TOKEN :
 
 TOKEN :
 {
-  < BUT: "?" > // incluido
+  < THEN: "?" > // incluido
 | < LPAREN: "(" >
 | < RPAREN: ")" >
 | < LBRACE: "{" >
@@ -266,10 +265,8 @@ TOKEN :
 | < NEQ: "!=" >
 | < PLUS: "+" >
 | < REM: "%" >
-| < SL: "<<" > // incluido
 | < SLASH: "/" >
 | < STAR: "*" >
-| < SR: ">>" > // incluido
 | < XE: "*=" > // incluido
 }
 
@@ -287,6 +284,8 @@ SPECIAL_TOKEN :
   "]",
   "{",
   "}",
+  "?",
+  ":",
   ";",
   ",",
   ".",
@@ -296,6 +295,7 @@ SPECIAL_TOKEN :
   "!",
   "+",
   "-",
+  "_",
   "*",
   "/",
   "%",

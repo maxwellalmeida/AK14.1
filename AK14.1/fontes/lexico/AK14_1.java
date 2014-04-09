@@ -240,7 +240,7 @@ Token t;
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[87];
+    boolean[] la1tokens = new boolean[85];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -260,7 +260,7 @@ Token t;
         }
       }
     }
-    for (int i = 0; i < 87; i++) {
+    for (int i = 0; i < 85; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
