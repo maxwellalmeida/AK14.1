@@ -22,6 +22,7 @@ e mostra-os na saída-padrăo.
 options {
   STATIC = false;
   DEBUG_LOOKAHEAD = true; // incluido
+  UNICODE_INPUT=true;
 }
 
 
@@ -66,7 +67,7 @@ boolean flagSaida = false; // saída resumida = falso
         lexer = new AK14_1(System.in);
      }
      else 
-    {       // lę do arquivo
+    {       // lę tokens do arquivo
         nomeDoAnalisado = args[args.length-1];  
         System.out.println("Lendo do arquivo " + nomeDoAnalisado + " . . .");
         try {
@@ -113,7 +114,7 @@ public int contadorErrosLexicos()
 }
 
 
-/* Espaços a serem desprezados no início de cada token */
+/* Espaços a serem desprezados no início de cada token: Branco e Comentários */
 
 SKIP :
 {
@@ -152,21 +153,19 @@ que não seja um dígito e (~["0"-"9"])* irá casar com qualquer cadeia que não
 }
 
 
-/* Palavras reservadas */
+/* Palavras reservadas e Literais */
 
 TOKEN :
 {
-  < BOOLEAN: "boolean" > // incluido
-| < BREAK: "break" >
+  < BREAK: "break" >
 | < CASE: "case" >
 | < CATCH: "catch" > // incluido
-| < CHAR: "char" > // incluido
 | < CLASS: "class" >
 | < CLOSE: "close" > //incluido
 | < CONSTRUCTOR: "constructor" >
-| < STANDARD: "default" > // incluido
 | < ELSE: "else" >
 | < EXTENDS: "extends" >
+| < FALSE: "false" > // incluido
 | < FOR: "for" >
 | < GENERIC: "generic" > // incluido
 | < IF: "if" >
@@ -174,7 +173,6 @@ TOKEN :
 | < IMPORT: "import" > // incluido
 | < INTERFACE: "interface" > // incluido
 | < IN: "in" > // incluido
-| < INT: "int" >
 | < NEW: "new" >
 | < OPEN: "open" > //incluido
 | < PRINT: "print" >
@@ -182,54 +180,73 @@ TOKEN :
 | < PUBLIC: "public" > //incluido
 | < READ: "read" >
 | < RETURN: "return" >
-| < STRING: "string" >
+| < STANDARD: "standard" > // incluido
 | < SUPER: "super" >
 | < SWITCH: "switch" > // incluido
 | < THROW: "throw" > // incluido
+| < TRUE: "true" > // incluido
 | < TRY: "try" > // incluido
-| < VOID: "void" > // incluido
 | < WHILE: "while" > // incluido
 }
 
-/* constantes */
+/* Primitivos*/
+
+TOKEN:
+{
+  < BOOLEAN: "boolean" > // incluido
+| < CHAR: "char" > // incluido
+| < INT: "int" >
+| < NULL: "null" > // constante nula - incluido
+| < STRING: "string" > // incluido
+| < VOID: "void" > // incluido  
+}
+
+
+/* Constantes literais */
 
 TOKEN :
 {
-  < BOOLEAN_CONST: ("true"|"false") > //incluido
+  < BOOLEAN_LITERAL: ("true"|"false") > //constante booleana - incluido
 |
-  < NUMBER_CONST:(  // números decimais, octais, hexadecimais ou binários - verificar se isso esta ok?
-                  (("-")? ["0"-"9"] (["0"-"9"])* )  
+  < NUMBER_LITERAL:(  // números decimais apenas positivos ou negativos - excluido: octais, hexa, binários
+                  (("-")? ["0"-"9"] (["0"-"9"])* )
+                  /*| 
+                  (["0"-"7"] (["0"-"7"])* ["o", "O"] ) |
+                  (["0"-"9"] (["0"-"7","A"-"F","a"-"f"])* ["h", "H"] ) |
+                  (["0"-"1"] (["0"-"1"])* ["b", "B"])*/
                  ) >
 |
-  < NULL_CONST: "null" > // constante nula
-|
-  < STRING_CONST:    //constante string como "abcd bcda" - http://cse.spsu.edu/clo/teaching/cs4713/lecture/node12.html como incluir simbolos e números? 
-      "\""( ~["\n","\"","\r"])* "\"" >
-/*
-
-FICOU FALTANDO DECIDIR ISSO!!!
-Character = (Letter | Digit | Symbol) {Letter | Digit | Symbol}.
-
-*/
+  < STRING_LITERAL:    //constante string de todo gênero incluindo símbolos - incluido 
+    "\""    (      (~[ "\"", "\\", "\n", "\r" ])    |      (        "\\"        (          [ "n", "t", "b", "r", "f", "\\", "'", "\"" ]        | [ "0"-"7" ] ([ "0"-"7" ])?        | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]        )      )    | ("\\u"       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]      )    )*    "\"" 
+      >
 
 |
-  < CHARACTER_CONST: ["0"-"9"]|["a"-"z"]|["A"-"Z"] >
+  < CHARACTER_LITERAL : //constante caractere de todo gênero incluindo símbolos - incluido    "'"    (      (~[ "'", "\\", "\n", "\r" ])    |      (        "\\"        (          [ "n", "t", "b", "r", "f", "\\", "'", "\"" ]        | [ "0"-"7" ] ([ "0"-"7" ])?        | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]        )      )    | ("\\u"       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]      )    )    "'"     >
 }
 
 /* Identificadores */
-/* Underscore está certo?.*/
+
 TOKEN :
 {
-  < IDENT: (<UNDERSCORE>)* <LETTER> (<LETTER>|<DIGIT>)* >
+//Identifier = {"_"} Letter { Letter | LetterBig | Digit }.
+  < IDENTIFIER: (<UNDERSCORE>)* <LETTER> (<LETTER>|<LETTER_BIG>|<DIGIT>)* >
+| 
+//ObjectName = LetterBig {Letter} {ObjectName}.
+  < OBJECT_NAME: (<LETTER_BIG> (<LETTER>)*)+ >
+| 
+//MethodName = {Letter} LetterBig {MethodName}.
+  < METHOD_NAME: (<LETTER> (<LETTER_BIG>)*)+ >
 |
-  < #LETTER:["A"-"Z","a"-"z"] >
+  < #LETTER:["a"-"z"] >
 |
+  < #LETTER_BIG:["A"-"Z"] >
+| 
   < #DIGIT:["0"-"9"] >
 |
   < #UNDERSCORE:["_"]>
 }
 
-/* Símbolos especiais */
+/* Separadores */
 
 TOKEN :
 {
@@ -271,11 +288,15 @@ TOKEN :
 }
 
 /* Trata os erros léxicos */
-/*Verificar o que deve realmente ser entendido como erro lexico.*/
+
+/*Um erro léxico ocorre quando alguma cadeia que aparece na entrada não pode ser reconhecida como um token válido.
+Para identificar esse tipo de erro fizemos o casamento de todas as cadeias formadas por caracteres que não iniciam
+nenhuma expressão de casamento para cadeias válidas. */
+
 SPECIAL_TOKEN :
 {
 <INVALID_LEXICAL: 
-(~ ["a"-"z", "A"-"Z",
+(~["a"-"z", "A"-"Z",
   "0"-"9",
   "\"",
   "(",
@@ -303,8 +324,23 @@ SPECIAL_TOKEN :
   "\t",
   "\n",
   "\r",
-  "\f"
-])+>
+  "\f",
+  "\u0027", // ' 
+  "\u007c", // |
+  "\u0040", // @
+  "\u0023", // #
+  "\u00a7", // §
+  "\u20ac", // €
+  "\u00a3", // £
+  "\u0024", // $
+  "\u00b0", // º
+  "\u00aa", // ª
+  "\u005e", // ^
+  "\u007e", // ~
+  "\u0060"  // `
+]
+
+)+>
    {
     System.err.println("Linha " + input_stream.getEndLine() + 
                            " - string invalido encontrado: " + image);
@@ -346,3 +382,5 @@ Token t;
         } while (proximoToken != t.next);
     } while (t.kind != AK14_1Constants.EOF);  
 }
+
+

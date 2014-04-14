@@ -32,12 +32,12 @@ boolean flagSaida = false; // saída resumida = falso
     }
 
     if (args[i].equals("-"))
-    {       // lę da entrada padr�?o      
-        System.out.println("Lendo da entrada padr\u00c4\ufffdo . . .");
+    {       // lę da entrada padrăo      
+        System.out.println("Lendo da entrada padr\u0103o . . .");
         lexer = new AK14_1(System.in);
      }
      else
-    {       // lę do arquivo
+    {       // lę tokens do arquivo
         nomeDoAnalisado = args[args.length-1];
         System.out.println("Lendo do arquivo " + nomeDoAnalisado + " . . .");
         try {
@@ -240,7 +240,7 @@ Token t;
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[85];
+    boolean[] la1tokens = new boolean[90];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -260,7 +260,7 @@ Token t;
         }
       }
     }
-    for (int i = 0; i < 85; i++) {
+    for (int i = 0; i < 90; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;
