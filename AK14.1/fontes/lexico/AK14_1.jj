@@ -22,7 +22,7 @@ e mostra-os na saída-padrăo.
 options {
   STATIC = false;
   DEBUG_LOOKAHEAD = true; // incluido
-  UNICODE_INPUT=true;
+  UNICODE_INPUT=true; // incluido
 }
 
 
@@ -208,20 +208,25 @@ TOKEN :
 {
   < BOOLEAN_LITERAL: ("true"|"false") > //constante booleana - incluido
 |
-  < NUMBER_LITERAL:(  // números decimais apenas positivos ou negativos - excluido: octais, hexa, binários
-                  (("-")? ["0"-"9"] (["0"-"9"])* )
-                  /*| 
+// números decimais apenas positivos ou negativos - excluido: octais, hexa, binários
+/* Excluido | 
                   (["0"-"7"] (["0"-"7"])* ["o", "O"] ) |
                   (["0"-"9"] (["0"-"7","A"-"F","a"-"f"])* ["h", "H"] ) |
                   (["0"-"1"] (["0"-"1"])* ["b", "B"])*/
-                 ) >
+  < NUMBER_LITERAL:((("-")? ["0"-"9"] (["0"-"9"])* )) >
 |
-  < STRING_LITERAL:    //constante string de todo gênero incluindo símbolos - incluido 
-    "\""    (      (~[ "\"", "\\", "\n", "\r" ])    |      (        "\\"        (          [ "n", "t", "b", "r", "f", "\\", "'", "\"" ]        | [ "0"-"7" ] ([ "0"-"7" ])?        | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]        )      )    | ("\\u"       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]      )    )*    "\"" 
-      >
+//constante string de todo gênero incluindo símbolos - incluido
+  < STRING_LITERAL: "\"" ( <LIST_LETTERS> | <LIST_ASCII> | <LIST_UNICODE> )* "\"" >
 
 |
-  < CHARACTER_LITERAL : //constante caractere de todo gênero incluindo símbolos - incluido    "'"    (      (~[ "'", "\\", "\n", "\r" ])    |      (        "\\"        (          [ "n", "t", "b", "r", "f", "\\", "'", "\"" ]        | [ "0"-"7" ] ([ "0"-"7" ])?        | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]        )      )    | ("\\u"       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]       [ "0"-"9", "A"-"F", "a"-"f" ]      )    )    "'"     >
+//constante caractere de todo gênero incluindo símbolos - incluido
+  < CHARACTER_LITERAL : "'" ( <LIST_LETTERS> | <LIST_ASCII> | <LIST_UNICODE> ) "'">
+| 
+  < #LIST_LETTERS:(~[ "'", "\\", "\n", "\r" ]) >
+|
+  < #LIST_ASCII:("\\"( [ "n", "t", "b", "r", "f", "\\", "'", "\"" ] | [ "0"-"7" ] ([ "0"-"7" ])? | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]))>
+|
+  < #LIST_UNICODE:("\\u" [ "0"-"9", "A"-"F", "a"-"f" ] [ "0"-"9", "A"-"F", "a"-"f" ] [ "0"-"9", "A"-"F", "a"-"f" ] [ "0"-"9", "A"-"F", "a"-"f" ])>
 }
 
 /* Identificadores */
